@@ -1,38 +1,42 @@
-# 📝 letter_generator.py — Article 7-Style Zoning Compliance Letter
 
-def format_letter(user_question: str, zone: str, zoning_response: str) -> str:
+def generate_compliance_letter(address: str, zoning: str, use: str, permission_type: str, summary: str) -> str:
     """
-    Formats GPT zoning response into a formal Article 7-style compliance letter.
+    Generates a formal compliance letter referencing Article 7 procedures based on input.
     """
-    return f"""
-City of Miami Planning Department
-Zoning Compliance Review
+    letter = f"""
+City of Miami Zoning Department
+Zoning Compliance Letter
 
-Subject: Zoning Inquiry — {zone}
+Subject: Land Use Inquiry for {address}
 
 To Whom It May Concern,
 
-This letter addresses the zoning inquiry regarding:
-"{user_question.strip()}"
+This letter serves as a preliminary zoning compliance response regarding the establishment of a "{use}" at the property located at {address}, which falls within zoning designation "{zoning}" per the City of Miami GIS and Miami 21 Zoning Code.
 
-Based on a review of the Miami 21 Zoning Code and applicable zoning regulations for Zone {zone},
-the following information applies:
+According to Table 3 of Article 4 of the Miami 21 Code, this use is classified under "{use}" and is permitted under this zoning designation via **{permission_type.upper()}**.
 
-{zoning_response.strip()}
+Pursuant to Article 7 (Process), an applicant pursuing this use type shall:
+- Submit a complete application (Sec. 7.2)
+- Follow the review procedure outlined for "{permission_type}" applications (Sec. 7.3)
+- Be subject to review by the appropriate decision-making body (Sec. 7.4)
 
-This response is provided based on current code interpretation, including Tables 3, 4, and 13,
-as well as supplemental and procedural guidance under Article 7.
+Summary:
+{summary}
 
-Please note: certain uses may still be subject to review by the Planning Director or the Zoning Board,
-and additional permits or site plan approvals may be required.
+This letter does not constitute a final determination. For formal approval, submit the required application package via the City's permitting portal or in-person to the Planning & Zoning Department.
 
 Sincerely,
-GPT-Generated Zoning Assistant
-For use in compliance pre-screening only.
+Zoning Officer
+City of Miami
 """
+    return letter
 
-def generate_compliance_letter(...):
-    # implementation here
 
-def get_permission_workflow(...):
-    # implementation here
+def get_permission_workflow(permission_type: str) -> str:
+    workflows = {
+        "BY RIGHT": "No public hearing required. Submit permit application for administrative review.",
+        "BY WARRANT": "Requires administrative review and issuance of Warrant by Planning Director.",
+        "BY EXCEPTION": "Requires review and approval by Planning & Zoning Board. May involve public hearing.",
+        "BY EXCEPTION WITH PUBLIC HEARING": "Full public hearing required by City Commission under Article 7.4."
+    }
+    return workflows.get(permission_type.upper(), "Review Article 7 for custom processing route.")
