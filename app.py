@@ -1,46 +1,60 @@
-# ✅ app.py — Streamlit Zoning Compliance Assistant
-
 import streamlit as st
 from zone_lookup import get_zone_by_address
 from rag_agent import query_zoning
-from letter_generator import format_letter
+from letter_generator import generate_compliance_letter, get_permission_workflow
 
-st.set_page_config(page_title="Miami 21 Zoning Advisor")
-st.title("🏗️ Miami 21 Zoning Compliance Assistant")
+st.title("🏗️ Miami 21 Zoning Compliance Agent")
+st.markdown("Check if a proposed use is allowed at a given Miami address.")
 
-# --- Inputs ---
-address = st.text_input("Enter a Property Address (Miami, FL):")
-manual_zone = st.text_input("Or enter a Zone Code manually (e.g., T4-L):")
-question = st.text_area("Ask a zoning or permitting question:", height=100)
+# Step 1: Address input
+address = st.text_input("Enter a Miami address (e.g., 3232 NW 102nd St, Miami, FL)")
 
-use_letter_format = st.checkbox("Generate Article 7-style compliance letter")
-
-# --- Logic ---
-if st.button("Submit"):
-    if not address and not manual_zone:
-        st.warning("Please provide an address or a zone code.")
-    elif not question.strip():
-        st.warning("Please enter a zoning question.")
-    else:
-        # Get zone from API if no manual input
-        zone = manual_zone.strip()
-        if not zone and address:
-            zone = get_zone_by_address(address)
-            if zone:
-                st.success(f"Zone Detected: {zone}")
-            else:
-                st.error("Unable to retrieve zone from address. Please check spelling or format.")
-                st.stop()
-
-        # RAG + GPT logic
-        answer = query_zoning(question=question, zone_code=zone)
-
-        if use_letter_format:
-            letter = format_letter(question, zone, answer)
-            st.text_area("📄 Compliance Letter", letter, height=300)
+if st.button("Check Zoning"):
+    with st.spinner("🔍 Looking up zoning and verifying use..."):
+        zoning = get_zone_by_address(address)
+        if zoning:
+            st.success(f"📍 Zone found: **{zoning}**")
+            st.session_state["zoning"] = zoning
+            st.session_state["address"] = address
         else:
-            st.markdown("### 🧠 Zoning Compliance Answer")
-            st.write(answer)
+            st.error("⚠️ Unable to retrieve zone from address. Please check spelling or format.")
 
-st.markdown("---")
-st.markdown("Built using Miami 21 Code, Tables 3/4/13 and Article 7.")
+# Step 2: Ask your question
+if "zoning" in st.session_state:
+    question = st.text_area("Ask a zoning question related to this property", height=100)
+
+    if st.button("Get Answer"):
+        with st.spinner("🤖 Analyzing Miami 21 Code..."):
+            result = query_zoning(question, st.session_state["zoning"])
+            st.session_state["result"] = result
+            st.success("✅ Answer ready:")
+            st.markdown(result["answer"])
+            st.session_state["use"] = result.get("use", "")
+            st.session_state["permission_type"] = result.get("permission_type", "")
+
+# Step 3: Generate Compliance Letter
+if all(k in st.session_state for k in ["address", "zoning", "use", "permission_type"]):
+    st.markdown("---")
+    st.subheader("📄 Generate Zoning Compliance Letter")
+
+    with st.form("letter_form"):
+        custom_summary = st.text_area("Optional Summary (or leave blank to auto-generate)", "", height=100)
+        generate_letter = st.form_submit_button("Generate Letter")
+
+    if generate_letter:
+        summary = custom_summary.strip() or get_permission_workflow(st.session_state["permission_type"])
+        letter_text = generate_compliance_letter(
+            st.session_state["address"],
+            st.session_state["zoning"],
+            st.session_state["use"],
+            st.session_state["permission_type"],
+            summary,
+        )
+
+        # Show preview
+        st.text_area("📄 Letter Preview", value=letter_text, height=300)
+
+        # Download as .txt
+        st.download_button("📥 Download Letter (.txt)", letter_text, file_name="Zoning_Letter.txt", mime="text/plain")
+else:
+    st.info("ℹ️ Run a zoning lookup and ask a question to enable letter generation.")
