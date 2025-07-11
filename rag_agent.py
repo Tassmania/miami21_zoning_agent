@@ -1,14 +1,10 @@
 # 🤖 rag_agent.py — Retrieve Relevant Chunks + GPT Completion
 
-
-# from langchain.vectorstores import Chroma
-from langchain_community.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_openai import ChatOpenAI
+# This script implements a simple RAG (Retrieval-Augmented Generation) agent
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
+from langchain.schema import HumanMessage, SystemMessage
+# from langchain_openai import ChatOpenAI
 
 
 # Load vector store
