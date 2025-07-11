@@ -30,3 +30,9 @@ Sincerely,
 GPT-Generated Zoning Assistant
 For use in compliance pre-screening only.
 """
+
+def generate_compliance_letter(...):
+    # implementation here
+
+def get_permission_workflow(...):
+    # implementation here
